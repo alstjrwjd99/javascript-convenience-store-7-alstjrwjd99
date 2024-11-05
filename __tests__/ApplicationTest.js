@@ -1,7 +1,9 @@
 import App from "../src/App.js";
 import { MissionUtils } from "@woowacourse/mission-utils";
 import { EOL as LINE_SEPARATOR } from "os";
-import { loadProducts, loadPromotions } from "../src/utils/loadInfo.js";
+import { fileManager } from "../src/models/FileManager.js";
+import Product from "../src/models/Product.js";
+import Promotion from "../src/models/Promotion.js";
 
 const mockQuestions = (inputs) => {
   const messages = [];
@@ -27,8 +29,7 @@ const mockNowDate = (date = null) => {
 };
 
 const getLogSpy = () => {
-  const logSpy = jest.spyOn(MissionUtils.Console, "print");
-  logSpy.mockClear();
+  const logSpy = jest.spyOn(MissionUtils.Console, "print");  logSpy.mockClear();
   return logSpy;
 };
 
@@ -156,14 +157,8 @@ describe("편의점", () => {
     });
   });
 
-/* 하기 2개의 테스트는 ESM 방식에서 
- * SyntaxError: Cannot use 'import.meta' outside a module
- * 이러한 오류를 불러오기 때문에 사용하지 않음 
- * 바꿀 수 있는 방법은 package.json을 바꿔야 하기 때문에 적용하지 못함 ( 문제의 요구사항 )
- */
-
   test('products.md 파일 불러오기', async () => {
-    const data = await loadProducts();
+    const data = await fileManager.loadProducts();
     
     const expectedData = `
 name,price,quantity,promotion
@@ -188,7 +183,7 @@ name,price,quantity,promotion
   });
 
   test('promotions.md  파일 불러오기', async () => {
-    const data = await loadPromotions();
+    const data = await fileManager.loadPromotions();
     
     const expectedData = `
 name,buy,get,start_date,end_date
@@ -198,4 +193,43 @@ MD추천상품,1,1,2024-01-01,2024-12-31
     expect(data.trim()).toBe(expectedData.trim());
   });
 
+  test('product 정보 분리해서 객체화', async () => {
+
+    const input = `
+name,price,quantity,promotion
+콜라,1000,10,탄산2+1
+사이다,1000,8,탄산2+1
+오렌지주스,1800,9,MD추천상품
+    `;
+    
+    const data = fileManager.splitProductsInfo(input);
+    
+    const expectedProducts = [
+      new Product('콜라', '1000', '10', '탄산2+1'),
+      new Product('사이다', '1000', '8', '탄산2+1'),
+      new Product('오렌지주스', '1800', '9', 'MD추천상품')
+    ];
+  
+    expect(data).toEqual(expectedProducts);
+  });
+
+  test('promotion 정보 분리해서 객체화', async () => {
+
+    const input = `
+name,buy,get,start_date,end_date
+탄산2+1,2,1,2024-01-01,2024-12-31
+MD추천상품,1,1,2024-01-01,2024-12-31
+반짝할인,1,1,2024-11-01,2024-11-30
+    `;
+    
+    const data = fileManager.splitPromotionsInfo(input);
+    
+    const expectedProducts = [
+      new Promotion('탄산2+1','2','1','2024-01-01','2024-12-31'),
+      new Promotion('MD추천상품','1','1','2024-01-01','2024-12-31'),
+      new Promotion('반짝할인','1','1','2024-11-01','2024-11-30')
+    ];
+  
+    expect(data).toEqual(expectedProducts);
+  });
 });
