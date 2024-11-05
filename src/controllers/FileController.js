@@ -1,9 +1,9 @@
 import fs from 'fs';
 import path from 'path';
-import Product from './Product';
-import Promotion from './Promotion';
+import Promotion from '../models/Promotion.js';
+import Product from '../models/Product.js';
 
-class FileManager {
+class FileController {
   async loadFile(fileName) {
     const filePath = path.join(process.cwd(), 'public', fileName);
 
@@ -40,4 +40,4 @@ class FileManager {
   }
 }
 
-export const fileManager = new FileManager();
+export const fileController = new FileController();

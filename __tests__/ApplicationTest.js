@@ -1,7 +1,7 @@
 import App from "../src/App.js";
 import { MissionUtils } from "@woowacourse/mission-utils";
 import { EOL as LINE_SEPARATOR } from "os";
-import { fileManager } from "../src/models/FileManager.js";
+import { fileController } from "../src/controllers/FileController.js";
 import Product from "../src/models/Product.js";
 import Promotion from "../src/models/Promotion.js";
 
@@ -158,7 +158,7 @@ describe("편의점", () => {
   });
 
   test('products.md 파일 불러오기', async () => {
-    const data = await fileManager.loadProducts();
+    const data = await fileController.loadProducts();
     
     const expectedData = `
 name,price,quantity,promotion
@@ -183,7 +183,7 @@ name,price,quantity,promotion
   });
 
   test('promotions.md  파일 불러오기', async () => {
-    const data = await fileManager.loadPromotions();
+    const data = await fileController.loadPromotions();
     
     const expectedData = `
 name,buy,get,start_date,end_date
@@ -202,7 +202,7 @@ name,price,quantity,promotion
 오렌지주스,1800,9,MD추천상품
     `;
     
-    const data = fileManager.splitProductsInfo(input);
+    const data = fileController.splitProductsInfo(input);
     
     const expectedProducts = [
       new Product('콜라', '1000', '10', '탄산2+1'),
@@ -222,7 +222,7 @@ MD추천상품,1,1,2024-01-01,2024-12-31
 반짝할인,1,1,2024-11-01,2024-11-30
     `;
     
-    const data = fileManager.splitPromotionsInfo(input);
+    const data = fileController.splitPromotionsInfo(input);
     
     const expectedProducts = [
       new Promotion('탄산2+1','2','1','2024-01-01','2024-12-31'),
