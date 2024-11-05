@@ -1,6 +1,7 @@
 import App from "../src/App.js";
 import { MissionUtils } from "@woowacourse/mission-utils";
 import { EOL as LINE_SEPARATOR } from "os";
+import { loadProducts, loadPromotions } from "../src/utils/loadInfo.js";
 
 const mockQuestions = (inputs) => {
   const messages = [];
@@ -155,41 +156,45 @@ describe("편의점", () => {
     });
   });
 
+/* 하기 2개의 테스트는 ESM 방식에서 
+ * SyntaxError: Cannot use 'import.meta' outside a module
+ * 이러한 오류를 불러오기 때문에 사용하지 않음 
+ * 바꿀 수 있는 방법은 package.json을 바꿔야 하기 때문에 적용하지 못함 ( 문제의 요구사항 )
+ */
+
   test('products.md 파일 불러오기', async () => {
-    const filePath = 'public/products.md';
-    const data = await loadProducts(filePath);
+    const data = await loadProducts();
     
     const expectedData = `
-    name,price,quantity,promotion
-    콜라,1000,10,탄산2+1
-    콜라,1000,10,null
-    사이다,1000,8,탄산2+1
-    사이다,1000,7,null
-    오렌지주스,1800,9,MD추천상품
-    탄산수,1200,5,탄산2+1
-    물,500,10,null
-    비타민워터,1500,6,null
-    감자칩,1500,5,반짝할인
-    감자칩,1500,5,null
-    초코바,1200,5,MD추천상품
-    초코바,1200,5,null
-    에너지바,2000,5,null
-    정식도시락,6400,8,null
-    컵라면,1700,1,MD추천상품
-    컵라면,1700,10,null`;
+name,price,quantity,promotion
+콜라,1000,10,탄산2+1
+콜라,1000,10,null
+사이다,1000,8,탄산2+1
+사이다,1000,7,null
+오렌지주스,1800,9,MD추천상품
+탄산수,1200,5,탄산2+1
+물,500,10,null
+비타민워터,1500,6,null
+감자칩,1500,5,반짝할인
+감자칩,1500,5,null
+초코바,1200,5,MD추천상품
+초코바,1200,5,null
+에너지바,2000,5,null
+정식도시락,6400,8,null
+컵라면,1700,1,MD추천상품
+컵라면,1700,10,null`;
     expect(data.trim()).toBe(expectedData.trim());
 
   });
 
-  test('promotion.md  파일 불러오기', async () => {
-    const filePath = 'public/promotion.md';
-    const data = await loadPromotion(filePath);
+  test('promotions.md  파일 불러오기', async () => {
+    const data = await loadPromotions();
     
     const expectedData = `
-    name,buy,get,start_date,end_date
-    탄산2+1,2,1,2024-01-01,2024-12-31
-    MD추천상품,1,1,2024-01-01,2024-12-31
-    반짝할인,1,1,2024-11-01,2024-11-30`;
+name,buy,get,start_date,end_date
+탄산2+1,2,1,2024-01-01,2024-12-31
+MD추천상품,1,1,2024-01-01,2024-12-31
+반짝할인,1,1,2024-11-01,2024-11-30`;
     expect(data.trim()).toBe(expectedData.trim());
   });
 
