@@ -3,6 +3,7 @@ import { OutputView } from "../views/OutputView.js";
 import { fileController } from "./FileController.js";
 import InventoryController from "./InventoryController.js";
 import PromotionController from "./PromotionController.js";
+import RequireController from "./RequireController.js";
 
 export default class ConvenienceController {
     async start() {
@@ -12,8 +13,9 @@ export default class ConvenienceController {
         const promotions = fileController.splitPromotionsInfo(promotionData);
         const inventoryCtrl = new InventoryController(products);
         const promotionCtrl = new PromotionController(promotions);
-        console.log(promotionCtrl.checkIfWithinPromotionPeriod());
+        const validPromotion = promotionCtrl.checkIfWithinPromotionPeriod();
         OutputView.printProducts(products);
-        InputView.readItem();
+        const requireData = await InputView.readItem();
+        const require = new RequireController(requireData).getRequires();
     }
 }

@@ -6,6 +6,8 @@ import Product from "../src/models/Product.js";
 import Promotion from "../src/models/Promotion.js";
 import { OutputView } from "../src/views/OutputView.js";
 import PromotionController from "../src/controllers/PromotionController.js";
+import Require from "../src/models/Require.js";
+import RequireController from "../src/controllers/RequireController.js";
 
 const mockQuestions = (inputs) => {
   const messages = [];
@@ -269,5 +271,13 @@ MD추천상품,1,1,2024-01-01,2024-12-31
     const output = promotionCtrl.checkIfWithinPromotionPeriod();
 
     expect(output).toEqual(expectedData);
-  })
+  });
+
+  test('구매 요구사항 분리', () => {
+    const input = '[콜라-10],[사이다-3]';
+    const expectedData = [new Require('콜라', 10), new Require('사이다', 3)];
+    
+    const output = new RequireController(input).getRequires();
+    expect(output).toEqual(expectedData);
+  });
 });
