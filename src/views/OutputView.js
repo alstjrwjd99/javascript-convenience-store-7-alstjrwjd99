@@ -6,12 +6,22 @@ export const OutputView = {
     },
     printProducts(products) {
         products.forEach((product) => {
-            let promotion = '';
-            if(product.promotion !== 'null'){
-                promotion = product.promotion;
-            }
-            Console.print(`- ${product.name} ${product.price.toLocaleString()}원 ${product.quantity}개 ${promotion}`);
+            Console.print(`- ${product.name} ${product.price.toLocaleString()}원 ${quantityToString(product.quantity)} ${promotionToString(product.promotion)}`);
         })
     }
     // ...
+}
+
+const promotionToString = (promotion) => {
+    if (promotion !== 'null') {
+        return promotion;
+    }
+    return '';
+}
+
+const quantityToString = (quantity) => {
+    if (quantity <= 0) {
+        return '재고 없음';
+    }
+    return quantity + '개';
 }

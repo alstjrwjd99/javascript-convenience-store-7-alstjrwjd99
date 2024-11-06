@@ -4,6 +4,7 @@ import { EOL as LINE_SEPARATOR } from "os";
 import { fileController } from "../src/controllers/FileController.js";
 import Product from "../src/models/Product.js";
 import Promotion from "../src/models/Promotion.js";
+import { OutputView } from "../src/views/OutputView.js";
 
 const mockQuestions = (inputs) => {
   const messages = [];
@@ -29,7 +30,7 @@ const mockNowDate = (date = null) => {
 };
 
 const getLogSpy = () => {
-  const logSpy = jest.spyOn(MissionUtils.Console, "print");  logSpy.mockClear();
+  const logSpy = jest.spyOn(MissionUtils.Console, "print"); logSpy.mockClear();
   return logSpy;
 };
 
@@ -159,7 +160,7 @@ describe("편의점", () => {
 
   test('products.md 파일 불러오기', async () => {
     const data = await fileController.loadProducts();
-    
+
     const expectedData = `
 name,price,quantity,promotion
 콜라,1000,10,탄산2+1
@@ -184,7 +185,7 @@ name,price,quantity,promotion
 
   test('promotions.md  파일 불러오기', async () => {
     const data = await fileController.loadPromotions();
-    
+
     const expectedData = `
 name,buy,get,start_date,end_date
 탄산2+1,2,1,2024-01-01,2024-12-31
@@ -201,15 +202,15 @@ name,price,quantity,promotion
 사이다,1000,8,탄산2+1
 오렌지주스,1800,9,MD추천상품
     `;
-    
+
     const data = fileController.splitProductsInfo(input);
-    
+
     const expectedProducts = [
       new Product('콜라', '1000', '10', '탄산2+1'),
       new Product('사이다', '1000', '8', '탄산2+1'),
       new Product('오렌지주스', '1800', '9', 'MD추천상품')
     ];
-  
+
     expect(data).toEqual(expectedProducts);
   });
 
@@ -221,15 +222,35 @@ name,buy,get,start_date,end_date
 MD추천상품,1,1,2024-01-01,2024-12-31
 반짝할인,1,1,2024-11-01,2024-11-30
     `;
-    
+
     const data = fileController.splitPromotionsInfo(input);
-    
+
     const expectedProducts = [
-      new Promotion('탄산2+1','2','1','2024-01-01','2024-12-31'),
-      new Promotion('MD추천상품','1','1','2024-01-01','2024-12-31'),
-      new Promotion('반짝할인','1','1','2024-11-01','2024-11-30')
+      new Promotion('탄산2+1', '2', '1', '2024-01-01', '2024-12-31'),
+      new Promotion('MD추천상품', '1', '1', '2024-01-01', '2024-12-31'),
+      new Promotion('반짝할인', '1', '1', '2024-11-01', '2024-11-30')
     ];
-  
+
     expect(data).toEqual(expectedProducts);
   });
+
+  test('재고가 0개라면 재고 없음을 출력', () => {
+    const input = [
+      new Product('콜라', '1000', '10', '탄산2+1'),
+      new Product('사이다', '1000', '0', '탄산2+1'),
+    ];
+  
+    const logSpy = getLogSpy();
+  
+    OutputView.printProducts(input);
+  
+    const expectedLog = 
+`- 콜라 1000원 10개 탄산2+1
+- 사이다 1000원 재고 없음 탄산2+1`;
+  
+    const output = getOutput(logSpy);
+  
+    expect(output).toContain(expectedLog);
+  });
+
 });
