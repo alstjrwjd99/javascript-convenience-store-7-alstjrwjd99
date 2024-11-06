@@ -16,6 +16,7 @@ export default class ConvenienceController {
         const validPromotion = promotionCtrl.checkIfWithinPromotionPeriod();
         OutputView.printProducts(products);
         const requireData = await InputView.readItem();
-        const require = new RequireController(requireData).getRequires();
+        const requires = new RequireController(requireData).getRequires();
+        inventoryCtrl.getDetailsOfSales(requires,validPromotion);
     }
 }

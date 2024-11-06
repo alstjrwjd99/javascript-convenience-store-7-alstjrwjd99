@@ -248,8 +248,8 @@ MD추천상품,1,1,2024-01-01,2024-12-31
     OutputView.printProducts(input);
 
     const expectedLog =
-      `- 콜라 1000원 10개 탄산2+1
-- 사이다 1000원 재고 없음 탄산2+1`;
+      `- 콜라 1,000원 10개 탄산2+1
+- 사이다 1,000원 재고 없음 탄산2+1`;
 
     const output = getOutput(logSpy);
 

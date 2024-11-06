@@ -10,7 +10,7 @@ export default class PromotionController {
     checkIfWithinPromotionPeriod() {
         const currentTime = DateTimes.now()
         const inProgressPromotion = this.#promotionInfo.filter((promotion) => {
-            return new Date(promotion.start_date) <= currentTime && new Date(promotion.end_date) >= currentTime;
+            return promotion.start_date <= currentTime && promotion.end_date >= currentTime;
         });
         return inProgressPromotion;
     }
