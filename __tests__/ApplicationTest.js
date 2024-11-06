@@ -5,6 +5,7 @@ import { fileController } from "../src/controllers/FileController.js";
 import Product from "../src/models/Product.js";
 import Promotion from "../src/models/Promotion.js";
 import { OutputView } from "../src/views/OutputView.js";
+import PromotionController from "../src/controllers/PromotionController.js";
 
 const mockQuestions = (inputs) => {
   const messages = [];
@@ -239,18 +240,34 @@ MD추천상품,1,1,2024-01-01,2024-12-31
       new Product('콜라', '1000', '10', '탄산2+1'),
       new Product('사이다', '1000', '0', '탄산2+1'),
     ];
-  
+
     const logSpy = getLogSpy();
-  
+
     OutputView.printProducts(input);
-  
-    const expectedLog = 
-`- 콜라 1000원 10개 탄산2+1
+
+    const expectedLog =
+      `- 콜라 1000원 10개 탄산2+1
 - 사이다 1000원 재고 없음 탄산2+1`;
-  
+
     const output = getOutput(logSpy);
-  
+
     expect(output).toContain(expectedLog);
   });
 
+  test('기간내의 프로모션 반환', () => {
+    const input = [
+      new Promotion('탄산2+1', '2', '1', '2024-01-01', '2024-12-31'),
+      new Promotion('MD추천상품', '1', '1', '2024-01-01', '2024-12-31'),
+      new Promotion('반짝할인', '1', '1', '2024-11-01', '2024-11-2')]
+
+    const expectedData = [
+      new Promotion('탄산2+1', '2', '1', '2024-01-01', '2024-12-31'),
+      new Promotion('MD추천상품', '1', '1', '2024-01-01', '2024-12-31'),
+    ]
+    const promotionCtrl = new PromotionController(input);
+
+    const output = promotionCtrl.checkIfWithinPromotionPeriod();
+
+    expect(output).toEqual(expectedData);
+  })
 });
