@@ -8,6 +8,7 @@ import { OutputView } from "../src/views/OutputView.js";
 import PromotionController from "../src/controllers/PromotionController.js";
 import Require from "../src/models/Require.js";
 import RequireController from "../src/controllers/RequireController.js";
+import InventoryController from "../src/controllers/InventoryController.js";
 
 const mockQuestions = (inputs) => {
   const messages = [];
@@ -276,8 +277,18 @@ MD추천상품,1,1,2024-01-01,2024-12-31
   test('구매 요구사항 분리', () => {
     const input = '[콜라-10],[사이다-3]';
     const expectedData = [new Require('콜라', 10), new Require('사이다', 3)];
-    
+
     const output = new RequireController(input).getRequires();
     expect(output).toEqual(expectedData);
   });
+
+  test('일반 상품 판매', async () => {
+    const productData = await fileController.loadProducts();
+    const products = fileController.splitProductsInfo(productData);
+    const expectedData = ['물', 3, 1500];
+    const inventoryCtrl = new InventoryController(products);
+    const output = inventoryCtrl.sellGeneralProduct('물', 3);
+    expect(output).toEqual(expectedData);
+  });
+
 });

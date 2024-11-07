@@ -14,17 +14,22 @@ export default class InventoryController {
         });
     }
 
-    getDetailsOfSales(requires, promotions) {
+    async getDetailsOfSales(requires, promotions) {
         const bills = [];
-        requires.forEach((require) => {
-            if (this.isRequireProductPromotion(require, promotions)) { bills.push(this.sellPromotionProduct()); }
-            else { bills.push(this.sellGeneralProduct(require.name, require.quantity)); }
-        });
+
+        // forEach()는 비동기 처리를 기다려주지 않음
+        for (const require of requires) {
+            if (this.isRequireProductPromotion(require)) {
+                bills.push(await this.sellPromotionProduct(require.name, require.quantity, promotions));
+            } else {
+                bills.push(this.sellGeneralProduct(require.name, require.quantity));
+            }
+        }
         return bills;
     }
 
-    isRequireProductPromotion(require, promotions) {
-        const isWithinPromotionPeriod = promotions.find((promotion) => promotion.name === require.promotion);
+    isRequireProductPromotion(require) {
+        const isWithinPromotionPeriod = this.#promotionProduct.find(product => product.name === require.name);
         if (isWithinPromotionPeriod === undefined) {
             return false;
         }
@@ -32,88 +37,88 @@ export default class InventoryController {
     }
 
     sellGeneralProduct(purchaseDemandName, purchaseDemandQuantity) {
-        const wantItemInfo = this.#generalProduct.find((product) => product.name === purchaseDemandName);
+        console.log('일반 창고에서 재고 찾기 시작');
+        const wantItemInfo = this.findWantItem(purchaseDemandName, this.#generalProduct);
+        if (wantItemInfo == undefined) {
+            console.log('[ERROR] 구매하려는 품목이 없습니다.');
+            return;
+        }
         if (purchaseDemandQuantity <= wantItemInfo.quantity) {
             wantItemInfo.quantity -= purchaseDemandQuantity;
-            return [purchaseDemandName, purchaseDemandQuantity, wantItemInfo.price];
+            console.log('일반 창고에서', purchaseDemandQuantity * wantItemInfo.price, '원 사용');
+            return [purchaseDemandName, purchaseDemandQuantity, purchaseDemandQuantity * wantItemInfo.price];
         } else {
             console.log('[ERROR] 구매하려는 수량이 부족합니다.');
             return;
         }
     }
 
-    sellPromotionProduct() {
-
+    findWantItem(purchaseDemandName, products) {
+        return products.find((product) => product.name === purchaseDemandName);
     }
 
-    checkInventoryStatus(requires, promotions) {
-        // require = [ Require { name: '콜라', quantity: 10 } ]
-        requires.forEach(async (require) => {
-            // [콜라-10] 일떄 창고에 콜라가 몇개 남았는지 확인
-            // stock = Product {
-            //     name: '콜라',
-            //     price: '1000',
-            //     quantity: '10',
-            //     promotion: '탄산2+1'
-            //   } 
-            const stock = this.findRemainQuantity(this.#promotionProduct, require);
-            if (stock === undefined) return;
-            // 프로모션 진행중인 것들에서 프로모션 진행인 상품 [콜라]
-            // p = Promotion {
-            //     name: '탄산2+1',
-            //     buy: '2',
-            //     get: '1',
-            //     start_date: '2024-01-01',
-            //     end_date: '2024-12-31'
-            //   }
-            const p = promotions.find((promotion) => promotion.name === stock.promotion);
+    async sellPromotionProduct(purchaseDemandName, purchaseDemandQuantity, promotions) {
+        console.log('프로모션 창고에서 재고 찾기 시작');
+        const inventoryItemInfo = this.findWantItem(purchaseDemandName, this.#promotionProduct);
+        // 프로모션 적용 기간인데 프로모션 상품이 없는 경우 일반 상품 재고를 가져다가 판다.
+        if (inventoryItemInfo == undefined) {
+            console.log('[ERROR] 프로모션 상품의 재고가 부족합니다.')
+            return this.sellGeneralProduct(purchaseDemandName, purchaseDemandQuantity);
+        }
+        const promo = promotions.find(promotion => promotion.name === inventoryItemInfo.promotion);
 
-            // 프로모션이 진행되는 경우 -> 3개씩 빠짐
-            const promotionPackage = p.buy + p.get;
+        if (purchaseDemandQuantity <= inventoryItemInfo.quantity) {
+            let present = Math.floor(purchaseDemandQuantity / (promo.buy + promo.get));
+            let purchased = present * promo.buy;
+            let remainDemand = purchaseDemandQuantity - present - purchased;
 
-            // 프로모션 중인 상품에 있는 경우
-            if (p !== undefined) {
-                // 구매하려고 하는 수량
-                let purchaseDemandQuantity = require.quantity;
-                // 구매한 양
-                let purchasedQuantity = 0;
-                // 증정
-                let present = 0;
-
-                // 사려고 하는 수량보다 프로모션 패키지가 크거나 같은 경우 && 사려고 하는 수량이 창고 수량 이내일 떄
-                while (purchaseDemandQuantity >= promotionPackage && (purchasedQuantity + p.buy + present) <= stock.quantity) {
-                    purchaseDemandQuantity -= promotionPackage;
-                    purchasedQuantity += p.buy;
+            if (remainDemand == promo.buy) {
+                // 현재 {상품명}은(는) 1개를 무료로 더 받을 수 있습니다. 추가하시겠습니까? (Y/N)를 물어봐야함
+                if (await InputView.isBringOneMore(inventoryItemInfo.name)) {
                     present++;
                 }
-                if (purchaseDemandQuantity == p.buy && purchasedQuantity + present < stock.quantity) {
-                    console.log('2+1인데 2개 들고 온 경우 1개 더 받을 수 있으니까 물어봄');
-                    // 프로모션 적용이 가능한 상품에 대해 고객이 해당 수량보다 적게 가져온 경우, 그 수량만큼 추가 여부를 입력받는다.
-                    if (await InputView.isBringOneMore(stock.name)) {
-                        present++;
-                    };
+            } else if (remainDemand > 0) {
+                // 현재 콜라 1개는 프로모션 할인이 적용되지 않습니다. 그래도 구매하시겠습니까? (Y/N)
+                if (await InputView.isNotApplyPromotion(inventoryItemInfo.name, remainDemand)) {
+                    purchased += remainDemand;
+                    remainDemand = 0;
                 }
-                // 프로모션 재고가 부족하여 일부 수량을 프로모션 혜택 없이 결제해야 하는 경우, 일부 수량에 대해 정가로 결제할지 여부를 입력받는다.
-                else if (purchaseDemandQuantity > 0) {
-                    console.log('사야할게 남았는데 창고에 수량이 부족해서 물어봐야 하는 경우');
-                    if (!await InputView.isNotApplyPromotion(stock.name, stock.quantity)) {
-                        purchaseDemandQuantity = 0
-                    }
-                    console.log(purchaseDemandQuantity, purchasedQuantity);
-                }
-
-                console.log(`${(purchasedQuantity + purchaseDemandQuantity) * stock.price}원 내야함, 증정 : ${present}`)
-                this.#promotionProduct.forEach((product, idx) => {
-                    if (product.name === stock.name) {
-                        this.#promotionProduct[idx].quantity -= (purchasedQuantity + purchaseDemandQuantity + present);
-                        console.log('남은 수량: ', this.#promotionProduct[idx].quantity);
-                    }
-                });
             }
-        });
+
+            inventoryItemInfo.quantity = inventoryItemInfo.quantity - purchased - present;
+            console.log('프로모션 구매한 수량', purchased);
+            console.log('프로모션 증정', present);
+            console.log('프로모션 창고에 남은 수량 ', inventoryItemInfo.quantity);
+            console.log('프로모션 창고에 가져다 줘야할 돈 ', purchased * inventoryItemInfo.price);
+            return [inventoryItemInfo.name, purchased, present, purchased * inventoryItemInfo.price];
+        }
+
+        else {
+            // 현재 {상품명} {수량}개는 프로모션 할인이 적용되지 않습니다. 그래도 구매하시겠습니까? (Y/N)
+            // 위의 로직 수행하고 남은 remain을 가지고 일반 창고에서 메꿈
+            const morePurchaseQuantity = purchaseDemandQuantity - inventoryItemInfo.quantity;
+
+            purchaseDemandQuantity = inventoryItemInfo.quantity;
+
+            let present = Math.floor(purchaseDemandQuantity / (promo.buy + promo.get));    // 증정
+            let purchased = present * promo.buy;  // 구매한 개수
+            let remain = purchaseDemandQuantity - present - purchased;
+
+            purchased += remain;
+            remain = 0;
+            inventoryItemInfo.quantity = inventoryItemInfo.quantity - purchased - present
+            console.log('프로모션 구매한 수량', purchased);
+            console.log('프로모션 서비스 ', present);
+            console.log('프로모션 창고에 가져다 줘야할 돈 ', purchased * inventoryItemInfo.price);
+            console.log('프로모션 창고에 남은 수량 ', inventoryItemInfo.quantity);
+            const [, buyQuantity, buyTotalPrice] = this.sellGeneralProduct(purchaseDemandName, morePurchaseQuantity);
+
+            console.log('일반 창고에서 가져온 수량 ', buyQuantity);
+            console.log('일반 창고에다가 줘야하는 돈 ', buyTotalPrice);
+
+            return [inventoryItemInfo.name, purchased + buyQuantity, present, purchased * inventoryItemInfo.price + buyTotalPrice];
+        }
     }
 
-    findRemainQuantity(targetList, require) {
-        return targetList.find(product => product.name === require.name);
-    }
+    // return [purchaseDemandName, purchased, present]
 }

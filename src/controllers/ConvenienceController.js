@@ -14,9 +14,11 @@ export default class ConvenienceController {
         const inventoryCtrl = new InventoryController(products);
         const promotionCtrl = new PromotionController(promotions);
         const validPromotion = promotionCtrl.checkIfWithinPromotionPeriod();
+        
         OutputView.printProducts(products);
         const requireData = await InputView.readItem();
         const requires = new RequireController(requireData).getRequires();
-        inventoryCtrl.getDetailsOfSales(requires,validPromotion);
+        const result = await inventoryCtrl.getDetailsOfSales(requires, validPromotion);
+        console.log(result); // 이 시점에서 result는 Promise의 결과를 갖게 됩니다.
     }
 }
