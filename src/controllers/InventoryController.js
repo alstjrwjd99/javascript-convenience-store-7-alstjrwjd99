@@ -49,7 +49,7 @@ export default class InventoryController {
 
     sellGeneralProduct(purchaseDemandName, purchaseDemandQuantity) {
         const wantItemInfo = this.findWantItem(purchaseDemandName, this.#generalProduct);
-
+        console.log(wantItemInfo, purchaseDemandName,purchaseDemandQuantity);
         if (wantItemInfo === undefined) {
             console.log('[ERROR] 구매하려는 품목이 없습니다.');
             return;

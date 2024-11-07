@@ -19,30 +19,36 @@ export default class ConvenienceController {
         let restart = false;
         while (true) {
             try {
-                if (!restart){
+                if (!restart) {
                     await OutputView.printProducts(products);
                     restart = false;
                 }
                 const requireData = await InputView.readItem();
-                const requires = new RequireController(requireData).getRequires();
-                const result = await inventoryCtrl.getDetailsOfSales(requires, validPromotion);
-                if (result.includes('[ERROR]')){
+                const requireCtrl = new RequireController(requireData);
+                const requires = requireCtrl.getRequires();
+                if (requires === undefined) {
                     restart = true;
-                    OutputView.printErrorMessage();
+                    OutputView.printErrorMessageInvalidInput();
+                    throw new Error("[ERROR] 올바르지 않은 형식으로 입력했습니다. 다시 입력해 주세요.");
+                }
+                const result = await inventoryCtrl.getDetailsOfSales(requires, validPromotion);
+                if (result.includes('[ERROR]')) {
+                    restart = true;
+                    OutputView.printErrorMessageExceed();
                     throw new Error("[ERROR] 재고 수량을 초과하여 구매할 수 없습니다. 다시 입력해 주세요.");
                 }
-    
+
                 const membershipCtrl = new MembershipController(result);
                 const memberShipDiscount = await membershipCtrl.getDiscountMembership();
                 OutputView.printReceipt(result, memberShipDiscount)
-    
+
                 if (!await InputView.isWannaBuyMore()) {
                     break
-                };    
+                };
             } catch (error) {
                 console.log(error);
             }
-            
+
         }
     }
 }
