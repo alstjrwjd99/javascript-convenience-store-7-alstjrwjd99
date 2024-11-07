@@ -48,10 +48,10 @@ export default class InventoryController {
         return true;
     }
 
-    async sellGeneralProduct(purchaseDemandName, purchaseDemandQuantity) {
+    sellGeneralProduct(purchaseDemandName, purchaseDemandQuantity) {
         const wantItemInfo = this.findWantItem(purchaseDemandName, this.#generalProduct);
         if (wantItemInfo === undefined) {
-            await OutputView.printErrorMessageNoExist();
+            OutputView.printErrorMessageNoExist();
             return;
         }
 
