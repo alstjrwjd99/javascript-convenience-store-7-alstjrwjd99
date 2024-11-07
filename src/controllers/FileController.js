@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import Promotion from '../models/Promotion.js';
-import Product from '../models/Product.js';
+import { Product } from '../models/Product.js';
 
 class FileController {
   async loadFile(fileName) {

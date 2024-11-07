@@ -1,3 +1,4 @@
+import { GeneralProduct, PromotionProduct } from "../models/Product.js";
 import { InputView } from "../views/InputView.js";
 
 export default class InventoryController {
@@ -46,7 +47,7 @@ export default class InventoryController {
         if (purchaseDemandQuantity <= wantItemInfo.quantity) {
             wantItemInfo.quantity -= purchaseDemandQuantity;
             console.log('일반 창고에서', purchaseDemandQuantity * wantItemInfo.price, '원 사용');
-            return [purchaseDemandName, purchaseDemandQuantity, purchaseDemandQuantity * wantItemInfo.price];
+            return new GeneralProduct(wantItemInfo.name, purchaseDemandQuantity * wantItemInfo.price, purchaseDemandQuantity, 'null');
         } else {
             console.log('[ERROR] 구매하려는 수량이 부족합니다.');
             return;
@@ -90,7 +91,7 @@ export default class InventoryController {
             console.log('프로모션 증정', present);
             console.log('프로모션 창고에 남은 수량 ', inventoryItemInfo.quantity);
             console.log('프로모션 창고에 가져다 줘야할 돈 ', purchased * inventoryItemInfo.price);
-            return [inventoryItemInfo.name, purchased, present, purchased * inventoryItemInfo.price];
+            return new PromotionProduct(inventoryItemInfo.name, purchased * inventoryItemInfo.price, purchased, inventoryItemInfo.promotion, present);
         }
 
         else {
@@ -111,14 +112,13 @@ export default class InventoryController {
             console.log('프로모션 서비스 ', present);
             console.log('프로모션 창고에 가져다 줘야할 돈 ', purchased * inventoryItemInfo.price);
             console.log('프로모션 창고에 남은 수량 ', inventoryItemInfo.quantity);
-            const [, buyQuantity, buyTotalPrice] = this.sellGeneralProduct(purchaseDemandName, morePurchaseQuantity);
+            const fromGeneralProduct = this.sellGeneralProduct(purchaseDemandName, morePurchaseQuantity);
 
-            console.log('일반 창고에서 가져온 수량 ', buyQuantity);
-            console.log('일반 창고에다가 줘야하는 돈 ', buyTotalPrice);
+            console.log('일반 창고에서 가져온 수량 ', fromGeneralProduct.quantity);
+            console.log('일반 창고에다가 줘야하는 돈 ', fromGeneralProduct.price);
 
-            return [inventoryItemInfo.name, purchased + buyQuantity, present, purchased * inventoryItemInfo.price + buyTotalPrice];
+            return [new PromotionProduct(inventoryItemInfo.name, purchased * inventoryItemInfo.price, purchased, inventoryItemInfo.promotion, present), 
+                new GeneralProduct(inventoryItemInfo.name, fromGeneralProduct.price, fromGeneralProduct.quantity, 'null')];
         }
     }
-
-    // return [purchaseDemandName, purchased, present]
 }

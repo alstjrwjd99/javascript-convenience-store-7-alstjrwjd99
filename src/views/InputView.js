@@ -18,5 +18,19 @@ export const InputView = {
             if (input === 'Y') return true;
             else if (input === 'N') return false;
         }
-    }
+    },
+    async isMembershipDiscount() {
+        while (true) {
+            const input = await Console.readLineAsync(`멤버십 할인을 받으시겠습니까? (Y/N)\n`);
+            if (input === 'Y') return true;
+            else if (input === 'N') return false;
+        }
+    },
+    async isWannaBuyMore() {
+        while (true) {
+            const input = await Console.readLineAsync(`감사합니다. 구매하고 싶은 다른 상품이 있나요? (Y/N)\n`);
+            if (input === 'Y') return true;
+            else if (input === 'N') return false;
+        }
+    },
 }

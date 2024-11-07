@@ -4,6 +4,7 @@ import { fileController } from "./FileController.js";
 import InventoryController from "./InventoryController.js";
 import PromotionController from "./PromotionController.js";
 import RequireController from "./RequireController.js";
+import MembershipController from "./MembershipController.js"
 
 export default class ConvenienceController {
     async start() {
@@ -19,6 +20,8 @@ export default class ConvenienceController {
         const requireData = await InputView.readItem();
         const requires = new RequireController(requireData).getRequires();
         const result = await inventoryCtrl.getDetailsOfSales(requires, validPromotion);
-        console.log(result); // 이 시점에서 result는 Promise의 결과를 갖게 됩니다.
+
+        const membershipCtrl = new MembershipController(result);
+        const memberShipDiscount = membershipCtrl.getDiscountMembership();
     }
 }

@@ -2,7 +2,7 @@ import App from "../src/App.js";
 import { MissionUtils } from "@woowacourse/mission-utils";
 import { EOL as LINE_SEPARATOR } from "os";
 import { fileController } from "../src/controllers/FileController.js";
-import Product from "../src/models/Product.js";
+import { Product } from "../src/models/Product.js";
 import Promotion from "../src/models/Promotion.js";
 import { OutputView } from "../src/views/OutputView.js";
 import PromotionController from "../src/controllers/PromotionController.js";
