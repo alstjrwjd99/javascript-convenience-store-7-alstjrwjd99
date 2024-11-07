@@ -45,10 +45,7 @@ export default class ConvenienceController {
                 if (!await InputView.isWannaBuyMore()) {
                     break
                 };
-            } catch (error) {
-                console.log(error);
-            }
-
+            } catch (error) {}
         }
     }
 }

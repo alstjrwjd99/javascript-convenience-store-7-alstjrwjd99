@@ -1,5 +1,6 @@
 import { GeneralProduct, PromotionProduct } from "../models/Product.js";
 import { InputView } from "../views/InputView.js";
+import { OutputView } from "../views/OutputView.js";
 
 export default class InventoryController {
     #generalProduct = [];
@@ -22,9 +23,9 @@ export default class InventoryController {
         for (const require of requires) {
             if (this.isRequireProductPromotion(require)) {
                 const a = await this.sellPromotionProduct(require.name, require.quantity, promotions);
-                if (a == undefined) { 
-                    return [] 
-                }else if (a === '[ERROR]'){
+                if (a == undefined) {
+                    return []
+                } else if (a === '[ERROR]') {
                     return '[ERROR]';
                 }
                 if (a.length >= 2) {
@@ -47,11 +48,10 @@ export default class InventoryController {
         return true;
     }
 
-    sellGeneralProduct(purchaseDemandName, purchaseDemandQuantity) {
+    async sellGeneralProduct(purchaseDemandName, purchaseDemandQuantity) {
         const wantItemInfo = this.findWantItem(purchaseDemandName, this.#generalProduct);
-        console.log(wantItemInfo, purchaseDemandName,purchaseDemandQuantity);
         if (wantItemInfo === undefined) {
-            console.log('[ERROR] 구매하려는 품목이 없습니다.');
+            await OutputView.printErrorMessageNoExist();
             return;
         }
 
@@ -72,11 +72,10 @@ export default class InventoryController {
     }
 
     async sellPromotionProduct(purchaseDemandName, purchaseDemandQuantity, promotions) {
-        // console.log('프로모션 창고에서 재고 찾기 시작');
         const inventoryItemInfo = this.findWantItem(purchaseDemandName, this.#promotionProduct);
         // 프로모션 적용 기간인데 프로모션 상품이 없는 경우 일반 상품 재고를 가져다가 판다.
         if (inventoryItemInfo == undefined) {
-            console.log('[ERROR] 프로모션 상품의 재고가 부족합니다.')
+            await OutputView.printErrorMessageNoExist();
             return this.sellGeneralProduct(purchaseDemandName, purchaseDemandQuantity);
         }
         const promo = promotions.find(promotion => promotion.name === inventoryItemInfo.promotion);
@@ -90,12 +89,10 @@ export default class InventoryController {
             let remainDemand = purchaseDemandQuantity - present - purchased;
 
             if (purchaseDemandQuantity % (promo.buy + promo.get) == promo.buy) {
-                // 현재 {상품명}은(는) 1개를 무료로 더 받을 수 있습니다. 추가하시겠습니까? (Y/N)를 물어봐야함
                 if (await InputView.isBringOneMore(inventoryItemInfo.name)) {
                     present++;
                 }
             } else if (remainDemand > 0) {
-                // 현재 콜라 1개는 프로모션 할인이 적용되지 않습니다. 그래도 구매하시겠습니까? (Y/N)
                 if (await InputView.isNotApplyPromotion(inventoryItemInfo.name, remainDemand)) {
                     purchased += remainDemand;
                     remainDemand = 0;
@@ -103,10 +100,6 @@ export default class InventoryController {
             }
 
             inventoryItemInfo.quantity = inventoryItemInfo.quantity - purchased - present;
-            // console.log('프로모션 구매한 수량', purchased);
-            // console.log('프로모션 증정', present);
-            // console.log('프로모션 창고에 남은 수량 ', inventoryItemInfo.quantity);
-            // console.log('프로모션 창고에 가져다 줘야할 돈 ', purchased * inventoryItemInfo.price);
             return new PromotionProduct(inventoryItemInfo.name, inventoryItemInfo.price, purchased, inventoryItemInfo.promotion, present);
         }
 
@@ -123,10 +116,6 @@ export default class InventoryController {
             purchased += remain;
             remain = 0;
             inventoryItemInfo.quantity = inventoryItemInfo.quantity - purchased - present
-            // console.log('프로모션 구매한 수량', purchased);
-            // console.log('프로모션 서비스 ', present);
-            // console.log('프로모션 창고에 가져다 줘야할 돈 ', purchased * inventoryItemInfo.price);
-            // console.log('프로모션 창고에 남은 수량 ', inventoryItemInfo.quantity);
 
             const generalProduct = this.#generalProduct.find(product => product.name === purchaseDemandName);
             if (morePurchaseQuantity > generalProduct.quantity) {
@@ -134,9 +123,6 @@ export default class InventoryController {
             }
 
             const fromGeneralProduct = this.sellGeneralProduct(purchaseDemandName, morePurchaseQuantity);
-
-            // console.log('일반 창고에서 가져온 수량 ', fromGeneralProduct.quantity);
-            // console.log('일반 창고에다가 줘야하는 돈 ', fromGeneralProduct.price);
 
             return [new PromotionProduct(inventoryItemInfo.name, inventoryItemInfo.price, purchased, inventoryItemInfo.promotion, present),
             new GeneralProduct(inventoryItemInfo.name, fromGeneralProduct.price, fromGeneralProduct.quantity, 'null')];

@@ -272,4 +272,32 @@ MD추천상품,1,1,2024-01-01,2024-12-31
     expect(output).toEqual(expectedData);
   });
 
+  test('이상한 입력1 : [콜라- ', async () => {
+    const input = '[콜라-';
+    const requireCtrl = new RequireController(input);
+    
+    await expect(requireCtrl.getRequires()).toEqual(undefined);
+});
+
+test('이상한 입력2 : [콜라-] ', async () => {
+  const input = '[콜라-]';
+  const requireCtrl = new RequireController(input);
+  
+  await expect(requireCtrl.getRequires()).toEqual(undefined);
+});
+
+test('이상한 입력3 : [-1] ', async () => {
+  const input = '[-1]';
+  const requireCtrl = new RequireController(input);
+  
+  await expect(requireCtrl.getRequires()).toEqual(undefined);
+});
+
+test('이상한 입력4 : [콜라--3] ', async () => {
+  const input = '[콜라--3]';
+  const requireCtrl = new RequireController(input);
+  
+  await expect(requireCtrl.getRequires()).toEqual(undefined);
+});
+
 });

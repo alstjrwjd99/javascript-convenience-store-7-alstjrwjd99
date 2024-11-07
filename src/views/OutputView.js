@@ -8,6 +8,9 @@ export const OutputView = {
     async printErrorMessageExceed(){
         await MissionUtils.Console.print("[ERROR] 재고 수량을 초과하여 구매할 수 없습니다. 다시 입력해 주세요.");
     },
+    async printErrorMessageNoExist(){
+        await MissionUtils.Console.print("[ERROR] 존재하지 않는 상품입니다. 다시 입력해 주세요.");
+    },
     async printStartMessage() {
         await MissionUtils.Console.print('안녕하세요. W편의점입니다.\n현재 보유하고 있는 상품입니다.\n');
     },
