@@ -11,7 +11,7 @@ export default class MembershipController {
         if (await InputView.isMembershipDiscount()) {
             this.sellProducts.forEach(product => {
                 if (product instanceof GeneralProduct) {
-                    memberShipDiscount += product.price * 0.3;
+                    memberShipDiscount += product.price * product.quantity * 0.3;
                 }
             });
         }

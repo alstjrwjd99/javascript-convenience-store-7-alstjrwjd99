@@ -22,6 +22,7 @@ export default class ConvenienceController {
         const result = await inventoryCtrl.getDetailsOfSales(requires, validPromotion);
 
         const membershipCtrl = new MembershipController(result);
-        const memberShipDiscount = membershipCtrl.getDiscountMembership();
+        const memberShipDiscount = await membershipCtrl.getDiscountMembership();
+        OutputView.printBill(result,memberShipDiscount)
     }
 }
