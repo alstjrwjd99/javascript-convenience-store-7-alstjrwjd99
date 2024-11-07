@@ -16,19 +16,33 @@ export default class ConvenienceController {
         const promotionCtrl = new PromotionController(promotions);
         const validPromotion = promotionCtrl.checkIfWithinPromotionPeriod();
 
+        let restart = false;
         while (true) {
-            OutputView.printProducts(products);
-            const requireData = await InputView.readItem();
-            const requires = new RequireController(requireData).getRequires();
-            const result = await inventoryCtrl.getDetailsOfSales(requires, validPromotion);
-
-            const membershipCtrl = new MembershipController(result);
-            const memberShipDiscount = await membershipCtrl.getDiscountMembership();
-            OutputView.printReceipt(result, memberShipDiscount)
-
-            if (!await InputView.isWannaBuyMore()) {
-                return
-            };
+            try {
+                if (!restart){
+                    await OutputView.printProducts(products);
+                    restart = false;
+                }
+                const requireData = await InputView.readItem();
+                const requires = new RequireController(requireData).getRequires();
+                const result = await inventoryCtrl.getDetailsOfSales(requires, validPromotion);
+                if (result.includes('[ERROR]')){
+                    restart = true;
+                    OutputView.printErrorMessage();
+                    throw new Error("[ERROR] 재고 수량을 초과하여 구매할 수 없습니다. 다시 입력해 주세요.");
+                }
+    
+                const membershipCtrl = new MembershipController(result);
+                const memberShipDiscount = await membershipCtrl.getDiscountMembership();
+                OutputView.printReceipt(result, memberShipDiscount)
+    
+                if (!await InputView.isWannaBuyMore()) {
+                    break
+                };    
+            } catch (error) {
+                console.log(error);
+            }
+            
         }
     }
 }

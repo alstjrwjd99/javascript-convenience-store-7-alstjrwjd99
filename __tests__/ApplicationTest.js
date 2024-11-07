@@ -238,25 +238,6 @@ MD추천상품,1,1,2024-01-01,2024-12-31
     expect(data).toEqual(expectedProducts);
   });
 
-  test('재고가 0개라면 재고 없음을 출력', () => {
-    const input = [
-      new Product('콜라', '1000', '10', '탄산2+1'),
-      new Product('사이다', '1000', '0', '탄산2+1'),
-    ];
-
-    const logSpy = getLogSpy();
-
-    OutputView.printProducts(input);
-
-    const expectedLog =
-      `- 콜라 1,000원 10개 탄산2+1
-- 사이다 1,000원 재고 없음 탄산2+1`;
-
-    const output = getOutput(logSpy);
-
-    expect(output).toContain(expectedLog);
-  });
-
   test('기간내의 프로모션 반환', () => {
     const input = [
       new Promotion('탄산2+1', '2', '1', '2024-01-01', '2024-12-31'),

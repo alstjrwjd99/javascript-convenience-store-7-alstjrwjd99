@@ -1,21 +1,28 @@
-import { Console } from "@woowacourse/mission-utils";
+import { MissionUtils } from "@woowacourse/mission-utils";
 import { PromotionProduct } from "../models/Product.js";
 
 export const OutputView = {
-    printStartMessage() {
-        Console.print('안녕하세요. W편의점입니다.\n현재 보유하고 있는 상품입니다.\n');
+    async printErrorMessage(){
+        await MissionUtils.Console.print("[ERROR] 재고 수량을 초과하여 구매할 수 없습니다. 다시 입력해 주세요.");
     },
-    printProducts(products) {
-        products.forEach((product) => {
-            Console.print(`- ${product.name} ${product.price.toLocaleString()}원 ${quantityToString(product.quantity)} ${promotionToString(product.promotion)}`);
-        })
+    async printStartMessage() {
+        await MissionUtils.Console.print('안녕하세요. W편의점입니다.\n현재 보유하고 있는 상품입니다.\n');
+    },
+    async printProducts(products) {
+        for (let i = 0; i < products.length; i++) {
+            const product = products[i];
+            await MissionUtils.Console.print(`- ${product.name} ${product.price.toLocaleString()}원 ${product.quantity}개 ${promotionToString(product.promotion)}`);
+            if (i < products.length - 1 && products[i].name != products[i + 1].name && products[i].promotion !== 'null') {
+                await MissionUtils.Console.print(`- ${product.name} ${product.price.toLocaleString()}원 재고 없음`);
+            }
+        }
     },
     printReceipt(payProducts, memberShipDiscount) {
         let totalProduct = 0;
         let totalMoney = 0;
         let totalPresent = 0;
         const presents = [];
-        Console.print(`
+        MissionUtils.Console.print(`
 ===========W 편의점=============
 상품명\t\t수량\t금액`);
         payProducts.forEach((product) => {
@@ -34,22 +41,22 @@ export const OutputView = {
 
             let price = product.price * cnt;
 
-            Console.print(`${prName}${cnt}\t${price.toLocaleString()}`);
+            MissionUtils.Console.print(`${prName}${cnt}\t${price.toLocaleString()}`);
             totalProduct += product.quantity;
             totalMoney += price
         });
         if (presents.length !== 0) {
-            Console.print(`
+            MissionUtils.Console.print(`
 ===========증	정=============`);
             presents.forEach((present) => {
-                Console.print(`${present.name}\t\t${present.present}`);
+                MissionUtils.Console.print(`${present.name}\t\t${present.present}`);
                 totalPresent = present.present * present.price;
             });
         };
-        Console.print(`==============================`);
-        Console.print(`총구매액\t${totalProduct}\t${totalMoney.toLocaleString()}
-행사할인\t\t-${totalPresent.toLocaleString()}
-멤버십할인\t\t-${memberShipDiscount.toLocaleString()}
+        MissionUtils.Console.print(`==============================`);
+        MissionUtils.Console.print(`총구매액\t${totalProduct}\t${totalMoney.toLocaleString()}
+행사할인\t\t${totalPresent ? 0 : -1 * totalPresent.toLocaleString()}
+멤버십할인\t\t${memberShipDiscount === 0 ? 0 : -1 * memberShipDiscount.toLocaleString()}
 내실돈\t\t\t ${(totalMoney - totalPresent - memberShipDiscount).toLocaleString()}`);
     }
 }
@@ -59,11 +66,4 @@ const promotionToString = (promotion) => {
         return promotion;
     }
     return '';
-}
-
-const quantityToString = (quantity) => {
-    if (quantity <= 0) {
-        return '재고 없음';
-    }
-    return quantity + '개';
 }

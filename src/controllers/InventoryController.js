@@ -22,12 +22,16 @@ export default class InventoryController {
         for (const require of requires) {
             if (this.isRequireProductPromotion(require)) {
                 const a = await this.sellPromotionProduct(require.name, require.quantity, promotions);
-                if (a.length === 2){
+                if (a == undefined) { 
+                    return [] 
+                }else if (a === '[ERROR]'){
+                    return '[ERROR]';
+                }
+                if (a.length >= 2) {
                     bills.push(...a);
-                }else {
+                } else {
                     bills.push(a);
                 }
-                
             } else {
                 bills.push(this.sellGeneralProduct(require.name, require.quantity));
             }
@@ -44,19 +48,22 @@ export default class InventoryController {
     }
 
     sellGeneralProduct(purchaseDemandName, purchaseDemandQuantity) {
-        // console.log('일반 창고에서 재고 찾기 시작');
         const wantItemInfo = this.findWantItem(purchaseDemandName, this.#generalProduct);
-        if (wantItemInfo == undefined) {
+
+        if (wantItemInfo === undefined) {
             console.log('[ERROR] 구매하려는 품목이 없습니다.');
             return;
         }
-        if (purchaseDemandQuantity <= wantItemInfo.quantity) {
-            wantItemInfo.quantity -= purchaseDemandQuantity;
-            console.log('일반 창고에서', purchaseDemandQuantity * wantItemInfo.price, '원 사용');
-            return new GeneralProduct(wantItemInfo.name, wantItemInfo.price, purchaseDemandQuantity, 'null');
-        } else {
-            console.log('[ERROR] 구매하려는 수량이 부족합니다.');
-            return;
+
+        try {
+            if (purchaseDemandQuantity <= wantItemInfo.quantity) {
+                wantItemInfo.quantity -= purchaseDemandQuantity;
+                return new GeneralProduct(wantItemInfo.name, wantItemInfo.price, purchaseDemandQuantity, 'null');
+            } else {
+                throw new Error("[ERROR] 재고 수량을 초과하여 구매할 수 없습니다. 다시 입력해 주세요.");
+            }
+        } catch (error) {
+            return "[ERROR]";
         }
     }
 
@@ -74,6 +81,9 @@ export default class InventoryController {
         }
         const promo = promotions.find(promotion => promotion.name === inventoryItemInfo.promotion);
 
+        if (promo == undefined) {
+            return this.sellGeneralProduct(purchaseDemandName, purchaseDemandQuantity);
+        }
         if (purchaseDemandQuantity <= inventoryItemInfo.quantity) {
             let present = Math.floor(purchaseDemandQuantity / (promo.buy + promo.get));
             let purchased = present === 0 ? purchaseDemandQuantity : present * promo.buy;
@@ -101,7 +111,6 @@ export default class InventoryController {
         }
 
         else {
-            // 현재 {상품명} {수량}개는 프로모션 할인이 적용되지 않습니다. 그래도 구매하시겠습니까? (Y/N)
             // 위의 로직 수행하고 남은 remain을 가지고 일반 창고에서 메꿈
             const morePurchaseQuantity = purchaseDemandQuantity - inventoryItemInfo.quantity;
 
@@ -118,6 +127,12 @@ export default class InventoryController {
             // console.log('프로모션 서비스 ', present);
             // console.log('프로모션 창고에 가져다 줘야할 돈 ', purchased * inventoryItemInfo.price);
             // console.log('프로모션 창고에 남은 수량 ', inventoryItemInfo.quantity);
+
+            const generalProduct = this.#generalProduct.find(product => product.name === purchaseDemandName);
+            if (morePurchaseQuantity > generalProduct.quantity) {
+                return '[ERROR]';
+            }
+
             const fromGeneralProduct = this.sellGeneralProduct(purchaseDemandName, morePurchaseQuantity);
 
             // console.log('일반 창고에서 가져온 수량 ', fromGeneralProduct.quantity);
