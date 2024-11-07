@@ -285,7 +285,7 @@ MD추천상품,1,1,2024-01-01,2024-12-31
   test('일반 상품 판매', async () => {
     const productData = await fileController.loadProducts();
     const products = fileController.splitProductsInfo(productData);
-    const expectedData = ['물', 3, 1500];
+    const expectedData = {"name": "물", "price": 500, "promotion": "null", "quantity": 3};
     const inventoryCtrl = new InventoryController(products);
     const output = inventoryCtrl.sellGeneralProduct('물', 3);
     expect(output).toEqual(expectedData);

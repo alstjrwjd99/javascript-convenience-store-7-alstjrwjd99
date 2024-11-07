@@ -10,7 +10,7 @@ export const OutputView = {
             Console.print(`- ${product.name} ${product.price.toLocaleString()}원 ${quantityToString(product.quantity)} ${promotionToString(product.promotion)}`);
         })
     },
-    printBill(payProducts, memberShipDiscount) {
+    printReceipt(payProducts, memberShipDiscount) {
         let totalProduct = 0;
         let totalMoney = 0;
         let totalPresent = 0;
@@ -43,7 +43,7 @@ export const OutputView = {
 ===========증	정=============`);
             presents.forEach((present) => {
                 Console.print(`${present.name}\t\t${present.present}`);
-                totalPresent = present.price;
+                totalPresent = present.present * present.price;
             });
         };
         Console.print(`==============================`);

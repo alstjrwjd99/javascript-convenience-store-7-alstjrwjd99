@@ -15,14 +15,20 @@ export default class ConvenienceController {
         const inventoryCtrl = new InventoryController(products);
         const promotionCtrl = new PromotionController(promotions);
         const validPromotion = promotionCtrl.checkIfWithinPromotionPeriod();
-        
-        OutputView.printProducts(products);
-        const requireData = await InputView.readItem();
-        const requires = new RequireController(requireData).getRequires();
-        const result = await inventoryCtrl.getDetailsOfSales(requires, validPromotion);
 
-        const membershipCtrl = new MembershipController(result);
-        const memberShipDiscount = await membershipCtrl.getDiscountMembership();
-        OutputView.printBill(result,memberShipDiscount)
+        while (true) {
+            OutputView.printProducts(products);
+            const requireData = await InputView.readItem();
+            const requires = new RequireController(requireData).getRequires();
+            const result = await inventoryCtrl.getDetailsOfSales(requires, validPromotion);
+
+            const membershipCtrl = new MembershipController(result);
+            const memberShipDiscount = await membershipCtrl.getDiscountMembership();
+            OutputView.printReceipt(result, memberShipDiscount)
+
+            if (!await InputView.isWannaBuyMore()) {
+                return
+            };
+        }
     }
 }

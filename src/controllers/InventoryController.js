@@ -21,7 +21,13 @@ export default class InventoryController {
         // forEach()는 비동기 처리를 기다려주지 않음
         for (const require of requires) {
             if (this.isRequireProductPromotion(require)) {
-                bills.push(await this.sellPromotionProduct(require.name, require.quantity, promotions));
+                const a = await this.sellPromotionProduct(require.name, require.quantity, promotions);
+                if (a.length === 2){
+                    bills.push(...a);
+                }else {
+                    bills.push(a);
+                }
+                
             } else {
                 bills.push(this.sellGeneralProduct(require.name, require.quantity));
             }
@@ -59,7 +65,7 @@ export default class InventoryController {
     }
 
     async sellPromotionProduct(purchaseDemandName, purchaseDemandQuantity, promotions) {
-        console.log('프로모션 창고에서 재고 찾기 시작');
+        // console.log('프로모션 창고에서 재고 찾기 시작');
         const inventoryItemInfo = this.findWantItem(purchaseDemandName, this.#promotionProduct);
         // 프로모션 적용 기간인데 프로모션 상품이 없는 경우 일반 상품 재고를 가져다가 판다.
         if (inventoryItemInfo == undefined) {
@@ -87,10 +93,10 @@ export default class InventoryController {
             }
 
             inventoryItemInfo.quantity = inventoryItemInfo.quantity - purchased - present;
-            console.log('프로모션 구매한 수량', purchased);
-            console.log('프로모션 증정', present);
-            console.log('프로모션 창고에 남은 수량 ', inventoryItemInfo.quantity);
-            console.log('프로모션 창고에 가져다 줘야할 돈 ', purchased * inventoryItemInfo.price);
+            // console.log('프로모션 구매한 수량', purchased);
+            // console.log('프로모션 증정', present);
+            // console.log('프로모션 창고에 남은 수량 ', inventoryItemInfo.quantity);
+            // console.log('프로모션 창고에 가져다 줘야할 돈 ', purchased * inventoryItemInfo.price);
             return new PromotionProduct(inventoryItemInfo.name, inventoryItemInfo.price, purchased, inventoryItemInfo.promotion, present);
         }
 
