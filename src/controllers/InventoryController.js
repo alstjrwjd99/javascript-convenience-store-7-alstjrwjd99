@@ -70,19 +70,21 @@ export default class InventoryController {
     findWantItem(purchaseDemandName, products) {
         return products.find((product) => product.name === purchaseDemandName);
     }
-
+    
     async sellPromotionProduct(purchaseDemandName, purchaseDemandQuantity, promotions) {
         const inventoryItemInfo = this.findWantItem(purchaseDemandName, this.#promotionProduct);
-        // 프로모션 적용 기간인데 프로모션 상품이 없는 경우 일반 상품 재고를 가져다가 판다.
+        
         if (inventoryItemInfo == undefined) {
             await OutputView.printErrorMessageNoExist();
             return this.sellGeneralProduct(purchaseDemandName, purchaseDemandQuantity);
         }
-        const promo = promotions.find(promotion => promotion.name === inventoryItemInfo.promotion);
+
+        const promo = this.findWantItem(inventoryItemInfo.promotion, promotions)
 
         if (promo == undefined) {
             return this.sellGeneralProduct(purchaseDemandName, purchaseDemandQuantity);
         }
+
         if (purchaseDemandQuantity <= inventoryItemInfo.quantity) {
             let present = Math.floor(purchaseDemandQuantity / (promo.buy + promo.get));
             let purchased = present === 0 ? purchaseDemandQuantity : present * promo.buy;
